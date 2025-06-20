@@ -1,23 +1,56 @@
-#include <SDL3/SDL_rect.h>
+#define SDL_MAIN_USE_CALLBACKS
+#include <SDL3/SDL_main.h>
+#include <SDL3/SDL_video.h>
+#include <SDL3/SDL_gpu.h>
 
-#include <print>
+static SDL_Window* s_window;
+static SDL_GPUDevice* s_gpu;
 
-#include "expr/tree.hpp"
+SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
+    s_window = SDL_CreateWindow("DemoApp", 1280, 720, SDL_WINDOW_RESIZABLE);
+    s_gpu = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, false, nullptr);
 
-using namespace expr;
+    if (!s_window || !s_gpu) {
+        SDL_DestroyWindow(s_window);
+        SDL_DestroyGPUDevice(s_gpu);
+        return SDL_APP_FAILURE;
+    }
 
-int main() {
-  ExprPtr x = std::make_shared<Var>("x");
-  ExprPtr one = std::make_shared<Const>(1.0);
-  ExprPtr two = std::make_shared<Const>(2.0);
+    SDL_ClaimWindowForGPUDevice(s_gpu, s_window);
 
-  ExprPtr x_plus_1 = std::make_shared<BinaryOp>(BinaryOpType::kAdd, x, one);
-  ExprPtr two_x = std::make_shared<BinaryOp>(BinaryOpType::kMul, two, x);
-  ExprPtr sin_2x = std::make_shared<UnaryOp>(UnaryOpType::kSin, two_x);
-  ExprPtr expr = std::make_shared<BinaryOp>(BinaryOpType::kMul, x_plus_1, sin_2x);
+    /**
+     * initialise everything else here 
+     */
 
-  std::unordered_map<std::string, double> vars = {{"x", 0.5}};
+    return SDL_APP_CONTINUE;
+}
 
-  std::println("{}", expr->eval(vars));
-  return 0;
+SDL_AppResult SDL_AppIterate(void *appstate) {
+ 
+    /**
+     * app logic here 
+     */   
+
+     return SDL_APP_CONTINUE;   
+}
+
+SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
+    switch(event->type) {
+        case SDL_EVENT_WINDOW_CLOSE_REQUESTED:  return SDL_APP_SUCCESS;
+
+        /**
+         * event handling here
+         */
+
+        default:                                return SDL_APP_CONTINUE;
+    }
+}
+
+void SDL_AppQuit(void *appstate, SDL_AppResult result) {
+    SDL_DestroyWindow(s_window);
+    SDL_DestroyGPUDevice(s_gpu);
+
+    /**
+     * dealocate memory here
+     */
 }
